@@ -4,14 +4,19 @@ WSADATA wsa;
 SOCKET server_fd, client_fd;
 struct sockaddr_in server_addr, client_addr;
 int client_addr_len = sizeof(client_addr);
-char buffer[BUFFER_SIZE] = {0};
+unsigned char buffer[BUFFER_SIZE] = {0};
 
 // 连接状态标志
 int isconnect = 0;
+// 待处理接收消息标志
+HANDLE isRecvWaitingForAnalyze = NULL;
 
 /*TCP通讯线程函数
  */
 int tcp_server() {    
+    // 初始化待处理接收消息标志
+    isRecvWaitingForAnalyze = CreateEvent(NULL, FALSE, FALSE, NULL);
+    
     // 初始化Winsock
     if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
         printf("WSAStartup失败，错误码：%d\n", WSAGetLastError());
@@ -74,6 +79,7 @@ int tcp_server() {
         int recv_size = recv(client_fd, buffer, BUFFER_SIZE, 0);
         if (recv_size > 0) {
             printf("收到 %d 字节数据：%s\n", recv_size, buffer);
+            SetEvent(isRecvWaitingForAnalyze);
             continue;
         } else if (recv_size == 0) {
             isconnect = 0;
