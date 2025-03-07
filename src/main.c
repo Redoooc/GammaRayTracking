@@ -1,6 +1,8 @@
 #include "main.h"
 #include "tcp.h"
 #include "recv_analyze.h"
+#include "file_read&write.h"
+#include "collect_test_data.h"
 
 DWORD threadId[MAX_THREAD_NUM]; // 用于存储线程ID的变量
 HANDLE threadHandle[MAX_THREAD_NUM];
@@ -37,7 +39,13 @@ int main() {
         printf("请输入1：\n");
         scanf("%d", &num);
         if (num == 1) {
-            u_send_B1(0,16000,60);
+            //u_send_B1(0,16000,60);
+            char addr[] = "../../ExperimentalData/example.txt";
+            appendOpenFile(addr);
+            int msg[] = {-1,-1,12654,13589,14568,65598};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
         }
     }
 
