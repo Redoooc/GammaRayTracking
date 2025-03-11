@@ -7,9 +7,9 @@
 #define SERVER_ADRESS "192.168.137.1"
 #define CLIENT_ADRESS "192.168.137.14"
 #define PORT 6000
-#define TCP_RECV_BUFFER_SIZE 5000
+#define TCP_RECV_BUFFER_SIZE 20000
 #define SEND_RETRYTIMES 5 // 发送指令最大允许重试次数
-#define SEND_RETRY_INTERVAL_TIME 1 // 发送指令重试间隔时间（单位：微秒）
+#define SEND_RETRY_INTERVAL_TIME 10 // 发送指令重试间隔时间（单位：毫秒）
 
 extern unsigned char tcpRecvBuffer[TCP_RECV_BUFFER_SIZE];
 extern HANDLE isRecvWaitingForAnalyze;

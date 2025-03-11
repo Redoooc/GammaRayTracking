@@ -34,24 +34,24 @@ int main() {
         printf("Thread1 created successfully with ID: %lu\n", threadId[1]);
     }
 
-    for(int i = 0; i < SEND_RETRYTIMES; i++){
+    for(int i = 0; i < 1; i++){
         int num;
         printf("请输入1：\n");
         scanf("%d", &num);
         if (num == 1) {
-            //u_send_B1(0,16000,60);
-            char addr[] = "../../ExperimentalData/example.txt";
-            appendOpenFile(addr);
-            int msg[] = {-1,-1,12654,13589,14568,65598};
-            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
-            writeFile(char_msg);
-            free(char_msg);
+            u_send_B2(5,1);
         }
     }
 
     while (1)
     {
-        /* code */
+        int x_input, y_input;
+        while(!isNotRotating);
+        printf("请输入x坐标：\n");
+        scanf("%d", &x_input);
+        printf("请输入y坐标：\n");
+        scanf("%d", &y_input);
+        u_send_B6(x_input,y_input,60,25,y_input/abs(y_input)==-1?1:0);
     }
     
 

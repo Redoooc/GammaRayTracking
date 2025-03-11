@@ -1,4 +1,5 @@
 #include "tcp.h"
+#include "recv_analyze.h"
 
 WSADATA wsa;
 SOCKET server_fd, client_fd;
@@ -103,9 +104,13 @@ int tcp_server() {
  *direction:方向选择：0水平顺时针，1水平逆时针，2垂直向上，3垂直向下。
  *angle:角度：旋转角度为真实角度乘上100，水平：0-36000，垂直，0-5500。
  *speed:速度：为云台真实速度的10倍，水平：0-60，垂直：0-25。
- *return:0：发送完成，-1：客户端未连接，-2：发送超时。
+ *return:0：发送完成，-1：客户端未连接，-2：发送超时，-3：云台正在转动，转动指令发送冲突。
  */
 int u_send_B1(int direction, int angle, int speed){
+    if(!isNotRotating){
+        printf("云台正在转动，转动指令B1发送冲突！\n");
+        return -3;
+    }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB1, 0x00, 0x14, 0x00, 0xB1, 0x00, (UINT8)direction, (UINT16)angle >> 8, (UINT16)angle, 0x00, (UINT8)speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
         if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
@@ -162,9 +167,13 @@ int u_send_B2(int channel, int status){
  *speed_x:水平速度：为实际转速放大10倍后取整的值，水平速度范围0-60，也就是0-6r/min，0-36°/s。
  *speed_z:垂直速度：为实际转速放大10倍后取整的值，垂直速度范围0-25，也就是0-2.5r/min，0-15°/s。
  *direction_z:垂直方向：1表示负数；0表示正数；
- *return:0：发送完成，-1：客户端未连接，-2：发送超时。
+ *return:0：发送完成，-1：客户端未连接，-2：发送超时，-3：云台正在转动，转动指令发送冲突。
  */
 int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_z){
+    if(!isNotRotating){
+        printf("云台正在转动，转动指令B6发送冲突！\n");
+        return -3;
+    }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB6, 0x00, 0x14, 0x00, 0xB6, (UINT16)angle_x >> 8, (UINT16)angle_x, (UINT16)angle_z >> 8, (UINT16)angle_z, 0x00, (UINT8)speed_x, 0x00, (UINT8)speed_z, 0x00, (UINT8)direction_z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
         if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
@@ -193,9 +202,13 @@ int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_
  *angle_z:垂直角度：旋转位置为真实角度乘上100，垂直旋转角度范围0-5500。（注意为绝对角度）
  *speed_x:水平速度：为实际转速放大10倍后取整的值，水平速度范围0-60，也就是0-6r/min，0-36°/s。
  *speed_z:垂直速度：为实际转速放大10倍后取整的值，垂直速度范围0-25，也就是0-2.5r/min，0-15°/s。
- *return:0：发送完成，-1：客户端未连接，-2：发送超时。
+ *return:0：发送完成，-1：客户端未连接，-2：发送超时，-3：云台正在转动，转动指令发送冲突。
  */
 int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z){
+    if(!isNotRotating){
+        printf("云台正在转动，转动指令B9发送冲突！\n");
+        return -3;
+    }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB9, 0x00, 0x14, 0x00, 0xB9, 0x00, (UINT8)direction, (UINT16)angle_x >> 8, (UINT16)angle_x, (UINT16)angle_z >> 8, (UINT16)angle_z, 0x00, (UINT8)speed_x, 0x00, (UINT8)speed_z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
         if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
