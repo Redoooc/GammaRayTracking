@@ -2,6 +2,9 @@
 #include "file_read&write.h"
 #include "tcp.h"
 #include "recv_analyze.h"
+#include "tracking.h"
+
+volatile int isAllowRecord = 0;
 
 int aim_x = 9010;
 int aim_y = 2010;
@@ -9,7 +12,6 @@ int aim_y = 2010;
 /*操控云台收集以放射源为中心的上下55度和左右90度范围的伽马数据
  */
 void collect_test_data(){
-    initBuffer(&clc_buf);
     char addr[] = "../../ExperimentalData/example.txt";
     appendOpenFile(addr);
     u_send_B2(5,1);
@@ -17,18 +19,26 @@ void collect_test_data(){
         for(int y = -55; y <= 55; y++){
             while(!isNotRotating);
             for(int cnt = 0; cnt < 5; cnt++){
-                recv_msg temp;
-                if(readBuffer(&clc_buf, &temp)){
-                    printf("横坐标为%d，纵坐标为%d，spec1%d，2:%d，3:%d，4:%d\n",temp.angle_x,temp.angle_z,temp.spec1,temp.spec2,temp.spec3,temp.spec4);
-                }else{
-                    cnt--;
-                }
-                int msg[] = {temp.angle_x,temp.angle_z,temp.spec1,temp.spec2,temp.spec3,temp.spec4};
+                while(!isAllowRecord);
+                int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
                 char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
                 writeFile(char_msg);
                 free(char_msg);
+                char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+                writeFile(char_spec1_detail);
+                free(char_spec1_detail);
+                char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+                writeFile(char_spec2_detail);
+                free(char_spec2_detail);
+                char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+                writeFile(char_spec3_detail);
+                free(char_spec3_detail);
+                char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+                writeFile(char_spec4_detail);
+                free(char_spec4_detail);
+                isAllowRecord = 0;
             }
-            u_send_B6(aim_x+(x*100), abs(aim_y+(y*100)), 60, 25, aim_y+(y*100)/abs(aim_y+(y*100))==-1?1:0);
+            rotate((aim_x+(x*100)+36000)%36000, aim_y+(y*100), 60, 25, 1);
         }
     }
 }

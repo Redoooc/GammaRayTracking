@@ -15,7 +15,9 @@ extern unsigned char tcpRecvBuffer[TCP_RECV_BUFFER_SIZE];
 extern HANDLE isRecvWaitingForAnalyze;
 
 int tcp_server();
+int u_send_A3(int channel, int timeset);
 int u_send_B1(int direction, int angle, int speed);
 int u_send_B2(int channel, int status);
 int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_z);
 int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z);
+int u_send_BA();

@@ -5,12 +5,21 @@
 volatile int isNotRotating = 0;
 CircularBuffer clc_buf;
 recv_msg recv_share;
+int dividedBagHeadNum[MAX_DATA_NUM_IN_A_BAG];
+int D1Location;
+int LocationCheckCNT = 0;
+
+// 待处理能谱消息标志
+HANDLE isSpecWaitingForProcess = NULL;
 
 int recv_analyze(){
+    // 初始化待处理能谱消息标志
+    isSpecWaitingForProcess = CreateEvent(NULL, FALSE, FALSE, NULL);
     while(1){
         WaitForSingleObject(isRecvWaitingForAnalyze, INFINITE);
-        if(tcpRecvBuffer[0] == 0x55){
-            switch (tcpRecvBuffer[8])
+        divide_databbag();
+        for(int i = 0; dividedBagHeadNum[i] != -1 && i < MAX_DATA_NUM_IN_A_BAG; i++){
+            switch (tcpRecvBuffer[dividedBagHeadNum[i] + 8])
             {
             case 0xB2:  //能谱关闭反馈
                 recv_process_B2();
@@ -37,15 +46,31 @@ int recv_analyze(){
                 break; 
                 
             case 0xD1:  //能谱数据
-                recv_process_D1();
+                recv_process_D1(dividedBagHeadNum[i]);
                 break;
             
             default:
-                printf("接收到MID为：0x%X 的数据。\n",tcpRecvBuffer[8]);
+                printf("接收到MID为：0x%X 的数据。\n",tcpRecvBuffer[dividedBagHeadNum[i] + 8]);
                 break;
             }
+        }
+    }
+}
+
+// 分割数据包(分割完成后在dividedBagHeadNum数组中留下每条指令的开始位置)
+void divide_databbag(){
+    memset(dividedBagHeadNum, 0, MAX_DATA_NUM_IN_A_BAG);
+    for(int i = 0; i < MAX_DATA_NUM_IN_A_BAG; i++){
+        int thisBagLength;
+        if(tcpRecvBuffer[dividedBagHeadNum[i]] == 0x55){
+            thisBagLength = (int)(tcpRecvBuffer[dividedBagHeadNum[i] + 1] << 8 | tcpRecvBuffer[dividedBagHeadNum[i] + 2]);
+            if(tcpRecvBuffer[dividedBagHeadNum[i] + 8] == 0xD1){ // 能谱数据包回传的长度有问题需要加一
+                thisBagLength += 1;
+            }
+            dividedBagHeadNum[i+1] = dividedBagHeadNum[i] + thisBagLength;
         }else{
-            printf("错误：接受到开头不为0x55的数据！\n");
+            dividedBagHeadNum[i] = -1;
+            break;
         }
     }
 }
@@ -56,6 +81,7 @@ void recv_process_B2(){
 
 void recv_process_B6(){
     isNotRotating = 1;
+    printf("接收到B6反馈\n");
 }
 
 void recv_process_BA(){
@@ -73,94 +99,127 @@ void recv_process_C3(){
 void recv_process_C6(){
     isNotRotating = 1;
     initBuffer(&clc_buf);
+    printf("云台初始化完成\n");
 }
 
-void recv_process_D1(){
-    if(!checkSpecAllWritten() && recv_share.angle_x == decode_coordinates_x(0) && recv_share.angle_z == decode_coordinates_z(0)){ //上个数据包没有包含所有探测器数据且当前数据包为上个数据包的续传（续传判断：探测坐标位置相同）
-        divide_spec_data();
+void recv_process_D1(int recv_D1_num){
+    if(!checkSpecAllWritten() && recv_share.angle_x == decode_coordinates_x(recv_D1_num) && recv_share.angle_z == decode_coordinates_z(recv_D1_num)){ //上个数据包没有包含所有探测器数据且当前数据包为上个数据包的续传（续传判断：探测坐标位置相同）
+        process_spec_data(recv_D1_num);
     }else{
         initRecvShare();
-        recv_share.angle_x = decode_coordinates_x(0);
-        recv_share.angle_z = decode_coordinates_z(0);
-        divide_spec_data();
+        recv_share.angle_x = decode_coordinates_x(recv_D1_num);
+        recv_share.angle_z = decode_coordinates_z(recv_D1_num);
+        process_spec_data(recv_D1_num);
     }
     if(checkSpecAllWritten()){
+        if(recv_share.angle_z > 7000 || recv_share.angle_z < -7000 || recv_share.angle_x > 36000 || recv_share.angle_x < 0){
+            initRecvShare();
+            return;
+        }
         writeBuffer(&clc_buf, recv_share);
+        SetEvent(isSpecWaitingForProcess);
+        checkIsNotRotatingThroughD1();
         initRecvShare();
     }
     // recv_msg temp;
     // if(readBuffer(&clc_buf, &temp)){
-    //     printf("横坐标为%d，纵坐标为%d，spec1%d，2:%d，3:%d，4:%d\n",temp.angle_x,temp.angle_z,temp.spec1,temp.spec2,temp.spec3,temp.spec4);
+    //     printf("横坐标为%d，纵坐标为%d，spec1%d，2:%d，3:%d，4:%d\n",temp.angle_x,temp.angle_z,temp.spec1_sum,temp.spec2_sum,temp.spec3_sum,temp.spec4_sum);
     // }
 }
 
 // 计算横坐标
-int decode_coordinates_x(int num){
+int decode_coordinates_x(int x_coord_num){
     int raw_angle_x = 0;
-    raw_angle_x = (int)((tcpRecvBuffer[(num*4146)+4108] << 8) | (tcpRecvBuffer[(num*4146)+4109]));
+    raw_angle_x = (int)((tcpRecvBuffer[(x_coord_num)+4108] << 8) | (tcpRecvBuffer[(x_coord_num)+4109]));
     return raw_angle_x;
 }
 
 // 计算纵坐标
-int decode_coordinates_z(int num){
+int decode_coordinates_z(int y_coord_num){
     int raw_angle_z = 0;
-    if(tcpRecvBuffer[(num*4146)+4111]!=0x00){
-        raw_angle_z = (int)((tcpRecvBuffer[(num*4146)+4110] << 8) | (tcpRecvBuffer[(num*4146)+4111]));
-    }else if (tcpRecvBuffer[(num*4146)+4113]!=0x00){
-        raw_angle_z = -(int)((tcpRecvBuffer[(num*4146)+4112] << 8) | (tcpRecvBuffer[(num*4146)+4113]));
+    if(tcpRecvBuffer[(y_coord_num)+4111]!=0x00){
+        raw_angle_z = (int)((tcpRecvBuffer[(y_coord_num)+4110] << 8) | (tcpRecvBuffer[(y_coord_num)+4111]));
+    }else if (tcpRecvBuffer[(y_coord_num)+4113]!=0x00){
+        raw_angle_z = -(int)((tcpRecvBuffer[(y_coord_num)+4112] << 8) | (tcpRecvBuffer[(y_coord_num)+4113]));
     }else{
         raw_angle_z = 0;
     }
     return raw_angle_z;
 }
 
-// 分割数据
-void divide_spec_data(){
-    for(int i = 0; i < 4; i++){ 
-        if(tcpRecvBuffer[i*4146] == 0x55 && recv_share.angle_x == decode_coordinates_x(i) && recv_share.angle_z == decode_coordinates_z(i)){ // 分割数据包并确保四个探测器的数据在同一处测得
-            switch (tcpRecvBuffer[i*4146 + 4107])
-            {
-                case 0XF1:
-                recv_share.spec1 = (int)(tcpRecvBuffer[i*4146 + 15] << 24 | tcpRecvBuffer[i*4146 + 16] << 16 | tcpRecvBuffer[i*4146 + 17] << 8 | tcpRecvBuffer[i*4146 + 18]);
-                break;
-
-                case 0XF2:
-                recv_share.spec2 = (int)(tcpRecvBuffer[i*4146 + 15] << 24 | tcpRecvBuffer[i*4146 + 16] << 16 | tcpRecvBuffer[i*4146 + 17] << 8 | tcpRecvBuffer[i*4146 + 18]);
-                break;
-
-                case 0XF3:
-                recv_share.spec3 = (int)(tcpRecvBuffer[i*4146 + 15] << 24 | tcpRecvBuffer[i*4146 + 16] << 16 | tcpRecvBuffer[i*4146 + 17] << 8 | tcpRecvBuffer[i*4146 + 18]);
-                break;
-
-                case 0XF4:
-                recv_share.spec4 = (int)(tcpRecvBuffer[i*4146 + 15] << 24 | tcpRecvBuffer[i*4146 + 16] << 16 | tcpRecvBuffer[i*4146 + 17] << 8 | tcpRecvBuffer[i*4146 + 18]);
-                break;
-
-                default:
-                printf("接收到代码为0X%X的探测器\n",tcpRecvBuffer[i*4146 + 4107]);
-                break;
-            }
-        }else{
-            break;
+// 处理能谱数据
+void process_spec_data(int spec_data_num){
+    switch (tcpRecvBuffer[spec_data_num + 4107])
+    {
+        case 0XF1:
+        recv_share.spec1_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
+            recv_share.spec1_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
         }
+        break;
+
+        case 0XF2:
+        recv_share.spec2_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
+            recv_share.spec2_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+        }
+        break;
+
+        case 0XF3:
+        recv_share.spec3_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
+            recv_share.spec3_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+        }
+        break;
+
+        case 0XF4:
+        recv_share.spec4_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
+            recv_share.spec4_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+        }
+        break;
+
+        default:
+        printf("接收到代码为0X%X的探测器\n",tcpRecvBuffer[spec_data_num + 4107]);
+        break;
     }
 }
 
 void initRecvShare(){
     recv_share.angle_x = 0;
     recv_share.angle_z = 0;
-    recv_share.spec1 = -1;
-    recv_share.spec2 = -1;
-    recv_share.spec3 = -1;
-    recv_share.spec4 = -1;
+    recv_share.spec1_sum = -1;
+    memset(recv_share.spec1_detail, 0, SPEC_DETAIL_SIZE);
+    recv_share.spec2_sum = -1;
+    memset(recv_share.spec2_detail, 0, SPEC_DETAIL_SIZE);
+    recv_share.spec3_sum = -1;
+    memset(recv_share.spec3_detail, 0, SPEC_DETAIL_SIZE);
+    recv_share.spec4_sum = -1;
+    memset(recv_share.spec4_detail, 0, SPEC_DETAIL_SIZE);
 }
 
 // 检查是否有任意Spec数据未被写入（即是否有任意Spec == -1） return为true时所有数据均被写入
 bool checkSpecAllWritten(){
-    if(recv_share.spec1 != -1 && recv_share.spec2 != -1 && recv_share.spec3 != -1 && recv_share.spec4 != -1){
+    if(recv_share.spec1_sum != -1 && recv_share.spec2_sum != -1 && recv_share.spec3_sum != -1 && recv_share.spec4_sum != -1){
         return true;
     }else{
         return false;
+    }
+}
+
+// 云台出现停止转动而无反馈情况处理
+void checkIsNotRotatingThroughD1(){
+    if(isNotRotating)return;
+    if(D1Location == (recv_share.angle_x+1)*(recv_share.angle_z+10000)){
+        LocationCheckCNT++;
+        if(LocationCheckCNT == CHECK_TIMES){
+            LocationCheckCNT = 0;
+            u_send_BA();
+            isNotRotating = 1;
+        }
+    }else{
+        D1Location = (recv_share.angle_x+1)*(recv_share.angle_z+10000);
+        LocationCheckCNT = 0;
     }
 }
 

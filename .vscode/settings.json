@@ -53,6 +53,9 @@
     },
     "terminal.integrated.defaultProfile.windows": "PowerShell",
     "files.associations": {
-        "tcp.h": "c"
+        "tcp.h": "c",
+        "collect_test_data.h": "c",
+        "tracking.h": "c",
+        "recv_analyze.h": "c"
     }
 }
