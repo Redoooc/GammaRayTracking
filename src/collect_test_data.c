@@ -6,8 +6,8 @@
 
 volatile int isAllowRecord = 0;
 
-int aim_x = 9010;
-int aim_y = 2010;
+int aim_x = 18000;
+int aim_y = 0;
 
 /*操控云台收集以放射源为中心的上下55度和左右90度范围的伽马数据
  */
@@ -40,6 +40,184 @@ void collect_test_data(){
             }
             rotate((aim_x+(x*100)+36000)%36000, aim_y+(y*100), 60, 25, 1);
         }
+    }
+}
+
+void collect_test_data_horizontal(){
+    char addr[] = "../../ExperimentalData/horizontal.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    for(int x = -90; x < 90; x++){
+        rotate((aim_x+(x*100)+36000)%36000, aim_y, 60, 25, 1);
+        while(!isNotRotating);
+        for(int cnt = 0; cnt < 5; cnt++){
+            while(!isAllowRecord);
+            int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
+            char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+            writeFile(char_spec1_detail);
+            free(char_spec1_detail);
+            char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+            writeFile(char_spec2_detail);
+            free(char_spec2_detail);
+            char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+            writeFile(char_spec3_detail);
+            free(char_spec3_detail);
+            char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+            writeFile(char_spec4_detail);
+            free(char_spec4_detail);
+            isAllowRecord = 0;
+        }
+    }
+}
+
+void collect_test_data_vertical(){
+    char addr[] = "../../ExperimentalData/vertical.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    for(int y = -55; y < 55; y++){
+        rotate(aim_x, aim_y+(y*100), 60, 25, 1);
+        while(!isNotRotating);
+        for(int cnt = 0; cnt < 5; cnt++){
+            while(!isAllowRecord);
+            int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
+            char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+            writeFile(char_spec1_detail);
+            free(char_spec1_detail);
+            char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+            writeFile(char_spec2_detail);
+            free(char_spec2_detail);
+            char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+            writeFile(char_spec3_detail);
+            free(char_spec3_detail);
+            char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+            writeFile(char_spec4_detail);
+            free(char_spec4_detail);
+            isAllowRecord = 0;
+        }
+    }
+}
+
+void collect_test_data_30degree(){
+    char addr[] = "../../ExperimentalData/30degree.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    for(int x = -90; x < 90; x++){
+        rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*50), 60, 25, 1);
+        while(!isNotRotating);
+        for(int cnt = 0; cnt < 5; cnt++){
+            while(!isAllowRecord);
+            int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
+            char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+            writeFile(char_spec1_detail);
+            free(char_spec1_detail);
+            char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+            writeFile(char_spec2_detail);
+            free(char_spec2_detail);
+            char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+            writeFile(char_spec3_detail);
+            free(char_spec3_detail);
+            char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+            writeFile(char_spec4_detail);
+            free(char_spec4_detail);
+            isAllowRecord = 0;
+        }
+    }
+}
+
+void collect_test_data_45degree(){
+    char addr[] = "../../ExperimentalData/45degree.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    for(int x = -58; x < 58; x++){
+        rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*100), 60, 25, 1);
+        while(!isNotRotating);
+        for(int cnt = 0; cnt < 5; cnt++){
+            while(!isAllowRecord);
+            int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
+            char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+            writeFile(char_spec1_detail);
+            free(char_spec1_detail);
+            char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+            writeFile(char_spec2_detail);
+            free(char_spec2_detail);
+            char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+            writeFile(char_spec3_detail);
+            free(char_spec3_detail);
+            char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+            writeFile(char_spec4_detail);
+            free(char_spec4_detail);
+            isAllowRecord = 0;
+        }
+    }
+}
+
+void collect_test_data_60degree(){
+    char addr[] = "../../ExperimentalData/60degree.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    for(int x = -55; x < 55; x++){
+        rotate((aim_x+(x*50)+36000)%36000, aim_y+(x*100), 60, 25, 1);
+        while(!isNotRotating);
+        for(int cnt = 0; cnt < 5; cnt++){
+            while(!isAllowRecord);
+            int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+            char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+            writeFile(char_msg);
+            free(char_msg);
+            char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+            writeFile(char_spec1_detail);
+            free(char_spec1_detail);
+            char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+            writeFile(char_spec2_detail);
+            free(char_spec2_detail);
+            char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+            writeFile(char_spec3_detail);
+            free(char_spec3_detail);
+            char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+            writeFile(char_spec4_detail);
+            free(char_spec4_detail);
+            isAllowRecord = 0;
+        }
+    }
+}
+
+void collect_test_data_static(){
+    char addr[] = "../../ExperimentalData/static.txt";
+    appendOpenFile(addr);
+    u_send_B2(5,1);
+    rotate(aim_x, aim_y, 60, 25, 1);
+    while(!isNotRotating);
+    while(1){
+        while(!isAllowRecord);
+        int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+        char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+        writeFile(char_msg);
+        free(char_msg);
+        char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+        writeFile(char_spec1_detail);
+        free(char_spec1_detail);
+        char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+        writeFile(char_spec2_detail);
+        free(char_spec2_detail);
+        char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+        writeFile(char_spec3_detail);
+        free(char_spec3_detail);
+        char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+        writeFile(char_spec4_detail);
+        free(char_spec4_detail);
+        isAllowRecord = 0;
     }
 }
 

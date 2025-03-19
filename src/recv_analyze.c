@@ -19,7 +19,7 @@ int recv_analyze(){
         WaitForSingleObject(isRecvWaitingForAnalyze, INFINITE);
         divide_databbag();
         for(int i = 0; dividedBagHeadNum[i] != -1 && i < MAX_DATA_NUM_IN_A_BAG; i++){
-            switch (tcpRecvBuffer[dividedBagHeadNum[i] + 8])
+            switch (demoRecvData[dividedBagHeadNum[i] + 8])
             {
             case 0xB2:  //能谱关闭反馈
                 recv_process_B2();
@@ -50,7 +50,7 @@ int recv_analyze(){
                 break;
             
             default:
-                printf("接收到MID为：0x%X 的数据。\n",tcpRecvBuffer[dividedBagHeadNum[i] + 8]);
+                printf("接收到MID为：0x%X 的数据。\n",demoRecvData[dividedBagHeadNum[i] + 8]);
                 break;
             }
         }
@@ -62,11 +62,8 @@ void divide_databbag(){
     memset(dividedBagHeadNum, 0, MAX_DATA_NUM_IN_A_BAG);
     for(int i = 0; i < MAX_DATA_NUM_IN_A_BAG; i++){
         int thisBagLength;
-        if(tcpRecvBuffer[dividedBagHeadNum[i]] == 0x55){
-            thisBagLength = (int)(tcpRecvBuffer[dividedBagHeadNum[i] + 1] << 8 | tcpRecvBuffer[dividedBagHeadNum[i] + 2]);
-            if(tcpRecvBuffer[dividedBagHeadNum[i] + 8] == 0xD1){ // 能谱数据包回传的长度有问题需要加一
-                thisBagLength += 1;
-            }
+        if(demoRecvData[dividedBagHeadNum[i]] == 0x55){
+            thisBagLength = (int)(demoRecvData[dividedBagHeadNum[i] + 1] << 8 | demoRecvData[dividedBagHeadNum[i] + 2]);
             dividedBagHeadNum[i+1] = dividedBagHeadNum[i] + thisBagLength;
         }else{
             dividedBagHeadNum[i] = -1;
@@ -113,6 +110,7 @@ void recv_process_D1(int recv_D1_num){
     }
     if(checkSpecAllWritten()){
         if(recv_share.angle_z > 7000 || recv_share.angle_z < -7000 || recv_share.angle_x > 36000 || recv_share.angle_x < 0){
+            printf("接收到云台坐标溢出！\n");
             initRecvShare();
             return;
         }
@@ -121,26 +119,22 @@ void recv_process_D1(int recv_D1_num){
         checkIsNotRotatingThroughD1();
         initRecvShare();
     }
-    // recv_msg temp;
-    // if(readBuffer(&clc_buf, &temp)){
-    //     printf("横坐标为%d，纵坐标为%d，spec1%d，2:%d，3:%d，4:%d\n",temp.angle_x,temp.angle_z,temp.spec1_sum,temp.spec2_sum,temp.spec3_sum,temp.spec4_sum);
-    // }
 }
 
 // 计算横坐标
 int decode_coordinates_x(int x_coord_num){
     int raw_angle_x = 0;
-    raw_angle_x = (int)((tcpRecvBuffer[(x_coord_num)+4108] << 8) | (tcpRecvBuffer[(x_coord_num)+4109]));
+    raw_angle_x = (int)((demoRecvData[(x_coord_num)+4107] << 8) | (demoRecvData[(x_coord_num)+4108]));
     return raw_angle_x;
 }
 
 // 计算纵坐标
 int decode_coordinates_z(int y_coord_num){
     int raw_angle_z = 0;
-    if(tcpRecvBuffer[(y_coord_num)+4111]!=0x00){
-        raw_angle_z = (int)((tcpRecvBuffer[(y_coord_num)+4110] << 8) | (tcpRecvBuffer[(y_coord_num)+4111]));
-    }else if (tcpRecvBuffer[(y_coord_num)+4113]!=0x00){
-        raw_angle_z = -(int)((tcpRecvBuffer[(y_coord_num)+4112] << 8) | (tcpRecvBuffer[(y_coord_num)+4113]));
+    if(demoRecvData[(y_coord_num)+4110]!=0x00){
+        raw_angle_z = (int)((demoRecvData[(y_coord_num)+4109] << 8) | (demoRecvData[(y_coord_num)+4110]));
+    }else if (demoRecvData[(y_coord_num)+4112]!=0x00){
+        raw_angle_z = -(int)((demoRecvData[(y_coord_num)+4111] << 8) | (demoRecvData[(y_coord_num)+4112]));
     }else{
         raw_angle_z = 0;
     }
@@ -149,38 +143,38 @@ int decode_coordinates_z(int y_coord_num){
 
 // 处理能谱数据
 void process_spec_data(int spec_data_num){
-    switch (tcpRecvBuffer[spec_data_num + 4107])
+    switch (demoRecvData[spec_data_num + 4106])
     {
         case 0XF1:
-        recv_share.spec1_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        recv_share.spec1_sum = (int)(demoRecvData[spec_data_num + 15] << 24 | demoRecvData[spec_data_num + 16] << 16 | demoRecvData[spec_data_num + 17] << 8 | demoRecvData[spec_data_num + 18]);
         for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
-            recv_share.spec1_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+            recv_share.spec1_detail[spec_cnt] = (int)(demoRecvData[spec_data_num + 23 + spec_cnt*4] << 24 | demoRecvData[spec_data_num + 24 + spec_cnt*4] << 16 | demoRecvData[spec_data_num + 25 + spec_cnt*4] << 8 | demoRecvData[spec_data_num + 26 + spec_cnt*4]);
         }
         break;
 
         case 0XF2:
-        recv_share.spec2_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        recv_share.spec2_sum = (int)(demoRecvData[spec_data_num + 15] << 24 | demoRecvData[spec_data_num + 16] << 16 | demoRecvData[spec_data_num + 17] << 8 | demoRecvData[spec_data_num + 18]);
         for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
-            recv_share.spec2_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+            recv_share.spec2_detail[spec_cnt] = (int)(demoRecvData[spec_data_num + 23 + spec_cnt*4] << 24 | demoRecvData[spec_data_num + 24 + spec_cnt*4] << 16 | demoRecvData[spec_data_num + 25 + spec_cnt*4] << 8 | demoRecvData[spec_data_num + 26 + spec_cnt*4]);
         }
         break;
 
         case 0XF3:
-        recv_share.spec3_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        recv_share.spec3_sum = (int)(demoRecvData[spec_data_num + 15] << 24 | demoRecvData[spec_data_num + 16] << 16 | demoRecvData[spec_data_num + 17] << 8 | demoRecvData[spec_data_num + 18]);
         for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
-            recv_share.spec3_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+            recv_share.spec3_detail[spec_cnt] = (int)(demoRecvData[spec_data_num + 23 + spec_cnt*4] << 24 | demoRecvData[spec_data_num + 24 + spec_cnt*4] << 16 | demoRecvData[spec_data_num + 25 + spec_cnt*4] << 8 | demoRecvData[spec_data_num + 26 + spec_cnt*4]);
         }
         break;
 
         case 0XF4:
-        recv_share.spec4_sum = (int)(tcpRecvBuffer[spec_data_num + 15] << 24 | tcpRecvBuffer[spec_data_num + 16] << 16 | tcpRecvBuffer[spec_data_num + 17] << 8 | tcpRecvBuffer[spec_data_num + 18]);
+        recv_share.spec4_sum = (int)(demoRecvData[spec_data_num + 15] << 24 | demoRecvData[spec_data_num + 16] << 16 | demoRecvData[spec_data_num + 17] << 8 | demoRecvData[spec_data_num + 18]);
         for(int spec_cnt = 0; spec_cnt < SPEC_DETAIL_SIZE; spec_cnt++){
-            recv_share.spec4_detail[spec_cnt] = (int)(tcpRecvBuffer[spec_data_num + 23 + spec_cnt*4] << 24 | tcpRecvBuffer[spec_data_num + 24 + spec_cnt*4] << 16 | tcpRecvBuffer[spec_data_num + 25 + spec_cnt*4] << 8 | tcpRecvBuffer[spec_data_num + 26 + spec_cnt*4]);
+            recv_share.spec4_detail[spec_cnt] = (int)(demoRecvData[spec_data_num + 23 + spec_cnt*4] << 24 | demoRecvData[spec_data_num + 24 + spec_cnt*4] << 16 | demoRecvData[spec_data_num + 25 + spec_cnt*4] << 8 | demoRecvData[spec_data_num + 26 + spec_cnt*4]);
         }
         break;
 
         default:
-        printf("接收到代码为0X%X的探测器\n",tcpRecvBuffer[spec_data_num + 4107]);
+        printf("接收到代码为0X%X的探测器\n",demoRecvData[spec_data_num + 4106]);
         break;
     }
 }
@@ -198,7 +192,7 @@ void initRecvShare(){
     memset(recv_share.spec4_detail, 0, SPEC_DETAIL_SIZE);
 }
 
-// 检查是否有任意Spec数据未被写入（即是否有任意Spec == -1） return为true时所有数据均被写入
+// 检查是否有任意Spec_sum数据未被写入（即是否有任意Spec_sum == -1） return为true时所有数据均被写入
 bool checkSpecAllWritten(){
     if(recv_share.spec1_sum != -1 && recv_share.spec2_sum != -1 && recv_share.spec3_sum != -1 && recv_share.spec4_sum != -1){
         return true;

@@ -6,6 +6,7 @@ SOCKET server_fd, client_fd;
 struct sockaddr_in server_addr, client_addr;
 int client_addr_len = sizeof(client_addr);
 unsigned char tcpRecvBuffer[TCP_RECV_BUFFER_SIZE] = {0};
+UINT8 *demoRecvData;
 
 // 连接状态标志
 volatile int isconnect = 0;
@@ -79,6 +80,8 @@ int tcp_server() {
         // 接收数据
         int recv_size = recv(client_fd, tcpRecvBuffer, TCP_RECV_BUFFER_SIZE, 0);
         if (recv_size > 0) {
+            free(demoRecvData);
+            demoRecvData = demodulate(tcpRecvBuffer, sizeof(tcpRecvBuffer));
             SetEvent(isRecvWaitingForAnalyze);
             continue;
         } else if (recv_size == 0) {
@@ -96,6 +99,7 @@ int tcp_server() {
     // 清理资源（通常不会执行到这里）
     closesocket(server_fd);
     WSACleanup();
+    free(demoRecvData);
     return 0;
 }
 
@@ -107,18 +111,22 @@ int tcp_server() {
 int u_send_A3(int channel, int timeset){
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xA3, 0x00, 0x14, 0x00, 0xA3, 0x00, (UINT8)channel, (UINT32)timeset >> 24, (UINT32)timeset >> 16, (UINT32)timeset >> 8, (UINT32)timeset, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("A3指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("A3指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("A3指令发送完成\n");
+            free(send_data);
             return 0;
         }
     }else{
@@ -140,19 +148,23 @@ int u_send_B1(int direction, int angle, int speed){
     }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB1, 0x00, 0x14, 0x00, 0xB1, 0x00, (UINT8)direction, (UINT16)angle >> 8, (UINT16)angle, 0x00, (UINT8)speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("B1指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("B1指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("B1指令发送完成\n");
             isNotRotating = 0;
+            free(send_data);
             return 0;
         }
     }else{
@@ -169,18 +181,22 @@ int u_send_B1(int direction, int angle, int speed){
 int u_send_B2(int channel, int status){
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB2, 0x00, 0x14, 0x00, 0xB2, 0x00, (UINT8)channel, 0x00, (UINT8)status, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("B2指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("B2指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("B2指令发送完成\n");
+            free(send_data);
             return 0;
         }
     }else{
@@ -204,19 +220,23 @@ int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_
     }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB6, 0x00, 0x14, 0x00, 0xB6, (UINT16)angle_x >> 8, (UINT16)angle_x, (UINT16)angle_z >> 8, (UINT16)angle_z, 0x00, (UINT8)speed_x, 0x00, (UINT8)speed_z, 0x00, (UINT8)direction_z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("B6指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("B6指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("B6指令发送完成\n");
             isNotRotating = 0;
+            free(send_data);
             return 0;
         }
     }else{
@@ -240,19 +260,23 @@ int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z)
     }
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB9, 0x00, 0x14, 0x00, 0xB9, 0x00, (UINT8)direction, (UINT16)angle_x >> 8, (UINT16)angle_x, (UINT16)angle_z >> 8, (UINT16)angle_z, 0x00, (UINT8)speed_x, 0x00, (UINT8)speed_z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("B9指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("B9指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("B9指令发送完成\n");
             isNotRotating = 0;
+            free(send_data);
             return 0;
         }
     }else{
@@ -267,22 +291,87 @@ int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z)
 int u_send_BA(){
     if(isconnect){
         UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xBA, 0x00, 0x14, 0x00, 0xBA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
-        if(send(client_fd, data, sizeof(data), 0) != sizeof(data)){
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
             for(int i = 0; i < SEND_RETRYTIMES; i++){
-                if(send(client_fd, data, sizeof(data), 0) == sizeof(data)){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
                     printf("BA指令发送完成\n");
+                    free(send_data);
                     return 0;
                 }
                 Sleep(SEND_RETRY_INTERVAL_TIME);
             }
             printf("BA指令发送超时\n");
+            free(send_data);
             return -2;
         }else{
             printf("BA指令发送完成\n");
+            free(send_data);
             return 0;
         }
     }else{
         printf("客户端未连接，BA指令发送失败！\n");
         return -1;
     }
+}
+
+/*调制发送数据，使得0x55以{0xFF, 0x00}形式发送，0xFF以{0xFF, 0xFF}形式发送。
+ *注意：该函数使用动态内存分配，需要及时释放内存！
+ */
+UINT8 *modulate(UINT8 *unmodulated_data, int unmodulated_data_length){
+    UINT8 *mo_data = (UINT8 *)malloc(2*unmodulated_data_length*sizeof(UINT8));
+    int mo_cnt = 1;
+    mo_data[0] = unmodulated_data[0];
+    for(int unmo_cnt = 1; unmo_cnt < unmodulated_data_length; unmo_cnt++){
+        if(unmodulated_data[unmo_cnt] == 0xFF){
+            mo_data[mo_cnt] = 0xFF;
+            mo_data[++mo_cnt] = 0xFF;
+        }else if(unmodulated_data[unmo_cnt] == 0x55){
+            mo_data[mo_cnt] = 0xFF;
+            mo_data[++mo_cnt] = 0x00;
+        }else{
+            mo_data[mo_cnt] = unmodulated_data[unmo_cnt];
+        }
+        mo_cnt++;
+    }
+    mo_data = realloc(mo_data, mo_cnt*sizeof(UINT8));
+    return mo_data;
+}
+
+/*求取调制完成的数据长度。
+ */
+int modulate_sizeof(UINT8 *unmodulated_data, int unmodulated_data_length){
+    int mo_size = 1;
+    for(int unmo_cnt_sizeof = 1; unmo_cnt_sizeof < unmodulated_data_length; unmo_cnt_sizeof++){
+        if(unmodulated_data[unmo_cnt_sizeof] == 0xFF){
+            mo_size += 2;
+        }else if(unmodulated_data[unmo_cnt_sizeof] == 0x55){
+            mo_size += 2;
+        }else{
+            mo_size++;
+        }
+    }
+    return mo_size;
+}
+
+/*解调接收数据，使得0x55从{0xFF, 0x00}的接收形式转回0x55，0xFF从{0xFF, 0xFF}的接收形式转回0xFF。
+ *注意：该函数使用动态内存分配，需要及时释放内存！
+ */
+UINT8 *demodulate(UINT8 *undemodulated_data, int undemodulated_data_length){
+    UINT8 *demo_data = (UINT8 *)malloc(undemodulated_data_length*sizeof(UINT8));
+    int demo_cnt = 0;
+    for(int undemo_cnt = 0; undemo_cnt < undemodulated_data_length; undemo_cnt++){
+        if(undemodulated_data[undemo_cnt] == 0xFF){
+            if(undemodulated_data[++undemo_cnt] == 0xFF){
+                demo_data[demo_cnt] = 0xFF;
+            }else{
+                demo_data[demo_cnt] = 0x55;
+            }
+        }else{
+            demo_data[demo_cnt] = undemodulated_data[undemo_cnt];
+        }
+        demo_cnt++;
+    }
+    demo_data = realloc(demo_data, demo_cnt*sizeof(UINT8));
+    return demo_data;
 }

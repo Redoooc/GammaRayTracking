@@ -56,7 +56,7 @@ int main() {
             u_send_A3(5,100);
             Sleep(100);
             // u_send_B2(5,1);
-            collect_test_data();
+            // collect_test_data_static();
         }
     }
 
@@ -68,7 +68,7 @@ int main() {
         scanf("%d", &x_input);
         printf("请输入y坐标：\n");
         scanf("%d", &y_input);
-        u_send_B6(x_input,y_input,60,25,y_input/abs(y_input)==-1?1:0);
+        rotate(x_input,y_input,60,25,0);
     }
     
 

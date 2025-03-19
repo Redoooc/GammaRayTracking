@@ -11,7 +11,7 @@
 #define SEND_RETRYTIMES 5 // 发送指令最大允许重试次数
 #define SEND_RETRY_INTERVAL_TIME 10 // 发送指令重试间隔时间（单位：毫秒）
 
-extern unsigned char tcpRecvBuffer[TCP_RECV_BUFFER_SIZE];
+extern UINT8 *demoRecvData;
 extern HANDLE isRecvWaitingForAnalyze;
 
 int tcp_server();
@@ -21,3 +21,6 @@ int u_send_B2(int channel, int status);
 int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_z);
 int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z);
 int u_send_BA();
+UINT8 *modulate(UINT8 *unmodulated_data, int unmodulated_data_length);
+int modulate_sizeof(UINT8 *unmodulated_data, int unmodulated_data_length);
+UINT8 *demodulate(UINT8 *undemodulated_data, int undemodulated_data_length);
