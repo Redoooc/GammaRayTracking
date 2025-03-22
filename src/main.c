@@ -4,11 +4,34 @@
 #include "file_read&write.h"
 #include "collect_test_data.h"
 #include "tracking.h"
+#include "data_visual.h"
+#include <math.h>
 
 DWORD threadId[MAX_THREAD_NUM]; // 用于存储线程ID的变量
 HANDLE threadHandle[MAX_THREAD_NUM];
 
+int isNeedAdd1 = 0;
+float Data1 = 0;
+int isNeedAdd2 = 0;
+float Data2 = 0;
+
 int main() {
+    /*  SDL初始化部分  */
+    SDL_SetMainReady(); // 明确告知 SDL 主函数已由用户提供
+    // 初始化 SDL
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        SDL_Log("SDL_Init failed: %s\n", SDL_GetError());
+        return -1;
+    }
+    // 初始化 SDL_ttf
+    if (TTF_Init() != 0) {
+        SDL_Log("TTF_Init failed: %s\n", TTF_GetError());
+        SDL_Quit();
+        return -1;
+    }
+    init_font();
+    /*SDL初始化部分结束*/
+
     threadHandle[0] = CreateThread(NULL,           // 默认安全属性
                                    0,              // 使用默认堆栈大小
                                    TCPthread,      // 线程函数
@@ -48,15 +71,33 @@ int main() {
         printf("Thread2 created successfully with ID: %lu\n", threadId[2]); 
     }
 
+    init_graph(0);
+    init_graph(1);
+
     for(int i = 0; i < 1; i++){
         int num;
         printf("请输入1：\n");
         scanf("%d", &num);
         if (num == 1) {
-            u_send_A3(5,100);
-            Sleep(100);
+            // u_send_A8(5, 2071, 0, 1, 1, 5);
+            // Sleep(100);
+            // u_send_A8(4, 2071, 0, 1, 1, 6);
+            // Sleep(100);
+            // u_send_A3(5,100);
+            // Sleep(100);
+            // u_send_B5(1);
+            // Sleep(100);
             // u_send_B2(5,1);
             // collect_test_data_static();
+            for(int i=0; i<5000; i++) {
+                Data1 = 15 + 30*sin(i*0.1);
+                isNeedAdd1 = 1;
+                plot_show(Data1,0);
+                Data2 = 50*cos(i*0.1);
+                isNeedAdd2 = 1;
+                plot_show(Data2,1);
+                Sleep(100);
+            }
         }
     }
 

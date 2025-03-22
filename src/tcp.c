@@ -135,6 +135,42 @@ int u_send_A3(int channel, int timeset){
     }
 }
 
+/*A8指令发送函数（能谱计时配置）
+ *通道选择：0000~0005，0001只配置1通道，0002只配置2通道，0003只配置3通道，0004只配置4通道，0005同时配置4个通道。
+ *阈值配置：0000~4096，配置信号触发阈值。(默认应为2071)
+ *极性：0000正极性，0001负极性。
+ *波形长度：0000~0002，配置波形长度，0000波形长度512个采样点，0001波形长度1024个采样点，0002波形长度2048个采样点。
+ *模式选择：0000~0002，0000为single模式，每次触发仅传出一个波形，0001为normal模式，按照阈值触发，0002位auto模式，按照固定时间间隔触发。
+ *增益配置：0000~0007
+ *return:0：发送完成，-1：客户端未连接，-2：发送超时。
+ */
+int u_send_A8(int channel, int threshold, int polarity, int wavelen, int model, int increase){
+    if(isconnect){
+        UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xA8, 0x00, 0x14, 0x00, 0xA8, 0x00, (UINT8)channel, (UINT16)threshold >> 8, (UINT16)threshold, 0x00, (UINT8)polarity, 0x00, (UINT8)wavelen, 0x00, (UINT8)model, 0x00, (UINT8)increase, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
+            for(int i = 0; i < SEND_RETRYTIMES; i++){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
+                    printf("A8指令发送完成\n");
+                    free(send_data);
+                    return 0;
+                }
+                Sleep(SEND_RETRY_INTERVAL_TIME);
+            }
+            printf("A8指令发送超时\n");
+            free(send_data);
+            return -2;
+        }else{
+            printf("A8指令发送完成\n");
+            free(send_data);
+            return 0;
+        }
+    }else{
+        printf("客户端未连接，A8指令发送失败！\n");
+        return -1;
+    }
+}
+
 /*B1指令发送函数（单向旋转）
  *direction:方向选择：0水平顺时针，1水平逆时针，2垂直向上，3垂直向下。
  *angle:角度：旋转角度为真实角度乘上100，水平：0-36000，垂直，0-5500。
@@ -201,6 +237,37 @@ int u_send_B2(int channel, int status){
         }
     }else{
         printf("客户端未连接，B2指令发送失败！\n");
+        return -1;
+    }
+}
+
+/*B5指令发送函数（能谱开关）
+ *status:开关选择：0000关闭，0001开启。
+ *return:0：发送完成，-1：客户端未连接，-2：发送超时。
+ */
+int u_send_B5(int status){
+    if(isconnect){
+        UINT8 data[] = {0x55, 0x00, 0x21, 0xAA, 0xAA, 0xAA, 0xAA, 0x01, 0xB5, 0x00, 0x14, 0x00, 0xB5, 0x00, (UINT8)status, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23};
+        UINT8 *send_data = modulate(data, sizeof(data));
+        if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
+            for(int i = 0; i < SEND_RETRYTIMES; i++){
+                if(send(client_fd, send_data, modulate_sizeof(data, sizeof(data)), 0) != modulate_sizeof(data, sizeof(data))){
+                    printf("B5指令发送完成\n");
+                    free(send_data);
+                    return 0;
+                }
+                Sleep(SEND_RETRY_INTERVAL_TIME);
+            }
+            printf("B5指令发送超时\n");
+            free(send_data);
+            return -2;
+        }else{
+            printf("B5指令发送完成\n");
+            free(send_data);
+            return 0;
+        }
+    }else{
+        printf("客户端未连接，B5指令发送失败！\n");
         return -1;
     }
 }

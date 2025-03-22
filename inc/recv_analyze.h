@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <winsock2.h>
 #include <windows.h>
 
 #define RECV_CIRCULARBUFFER_SIZE 20  // 定义缓冲区大小

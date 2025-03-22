@@ -56,6 +56,10 @@
         "tcp.h": "c",
         "collect_test_data.h": "c",
         "tracking.h": "c",
-        "recv_analyze.h": "c"
+        "recv_analyze.h": "c",
+        "data_visualization.h": "c",
+        "windows.h": "c",
+        "math.h": "c",
+        "file_read&write.h": "c"
     }
 }

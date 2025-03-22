@@ -3,19 +3,26 @@
         {
             "type": "cppbuild",
             "label": "C/C++: gcc.exe 生成活动文件",
-            "command": "C:/MinGW/bin/gcc.exe",
+            "command": "C:\\mingw64\\bin\\gcc.exe",
             "args": [
                 "-I${workspaceFolder}/inc",
+                "-IE:\\A_YunTaiMFGTOOL\\SDL2-2.26.0-allinone\\x86_64-w64-mingw32\\include\\SDL2",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${fileDirname}\\*.c",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-m64",
                 "-fexec-charset=GBK",
-                "-lws2_32"
+                "-LE:\\A_YunTaiMFGTOOL\\SDL2-2.26.0-allinone\\x86_64-w64-mingw32\\lib",
+                "-lSDL2main",
+                "-lSDL2",
+                "-lSDL2_ttf",
+                "-lws2_32",
+                "-lm",
             ],
             "options": {
-                "cwd": "C:/MinGW/bin"
+                "cwd": "C:\\mingw64\\bin"
             },
             "problemMatcher": [
                 "$gcc"

@@ -6,7 +6,7 @@
 
 volatile int isAllowRecord = 0;
 
-int aim_x = 18000;
+int aim_x = 0;
 int aim_y = 0;
 
 /*操控云台收集以放射源为中心的上下55度和左右90度范围的伽马数据
@@ -14,10 +14,10 @@ int aim_y = 0;
 void collect_test_data(){
     char addr[] = "../../ExperimentalData/example.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int x = -90; x <= 90; x++){
         for(int y = -55; y <= 55; y++){
             while(!isNotRotating);
+            u_send_B2(5,1);
             for(int cnt = 0; cnt < 5; cnt++){
                 while(!isAllowRecord);
                 int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -38,6 +38,7 @@ void collect_test_data(){
                 free(char_spec4_detail);
                 isAllowRecord = 0;
             }
+            u_send_B2(5,0);
             rotate((aim_x+(x*100)+36000)%36000, aim_y+(y*100), 60, 25, 1);
         }
     }
@@ -46,10 +47,10 @@ void collect_test_data(){
 void collect_test_data_horizontal(){
     char addr[] = "../../ExperimentalData/horizontal.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int x = -90; x < 90; x++){
         rotate((aim_x+(x*100)+36000)%36000, aim_y, 60, 25, 1);
         while(!isNotRotating);
+        u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
             int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -70,16 +71,17 @@ void collect_test_data_horizontal(){
             free(char_spec4_detail);
             isAllowRecord = 0;
         }
+        u_send_B2(5,0);
     }
 }
 
 void collect_test_data_vertical(){
     char addr[] = "../../ExperimentalData/vertical.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int y = -55; y < 55; y++){
         rotate(aim_x, aim_y+(y*100), 60, 25, 1);
         while(!isNotRotating);
+        u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
             int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -100,16 +102,17 @@ void collect_test_data_vertical(){
             free(char_spec4_detail);
             isAllowRecord = 0;
         }
+        u_send_B2(5,0);
     }
 }
 
 void collect_test_data_30degree(){
     char addr[] = "../../ExperimentalData/30degree.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int x = -90; x < 90; x++){
         rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*50), 60, 25, 1);
         while(!isNotRotating);
+        u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
             int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -130,16 +133,17 @@ void collect_test_data_30degree(){
             free(char_spec4_detail);
             isAllowRecord = 0;
         }
+        u_send_B2(5,0);
     }
 }
 
 void collect_test_data_45degree(){
     char addr[] = "../../ExperimentalData/45degree.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int x = -58; x < 58; x++){
         rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*100), 60, 25, 1);
         while(!isNotRotating);
+        u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
             int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -160,16 +164,17 @@ void collect_test_data_45degree(){
             free(char_spec4_detail);
             isAllowRecord = 0;
         }
+        u_send_B2(5,0);
     }
 }
 
 void collect_test_data_60degree(){
     char addr[] = "../../ExperimentalData/60degree.txt";
     appendOpenFile(addr);
-    u_send_B2(5,1);
     for(int x = -55; x < 55; x++){
         rotate((aim_x+(x*50)+36000)%36000, aim_y+(x*100), 60, 25, 1);
         while(!isNotRotating);
+        u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
             int msg[] = {abs(track_share.angle_x-aim_x)<10000?track_share.angle_x-aim_x:((aim_x-track_share.angle_x)/abs(track_share.angle_x-aim_x))*(36000-abs(track_share.angle_x-aim_x)),track_share.angle_z-aim_y,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
@@ -190,6 +195,7 @@ void collect_test_data_60degree(){
             free(char_spec4_detail);
             isAllowRecord = 0;
         }
+        u_send_B2(5,0);
     }
 }
 

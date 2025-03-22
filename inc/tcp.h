@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "ws2_32.lib")  // 链接Winsock库
 
-#define SERVER_ADRESS "192.168.137.1"
+#define SERVER_ADRESS "192.168.137.150"
 #define CLIENT_ADRESS "192.168.137.14"
 #define PORT 6000
 #define TCP_RECV_BUFFER_SIZE 20000
@@ -16,8 +16,10 @@ extern HANDLE isRecvWaitingForAnalyze;
 
 int tcp_server();
 int u_send_A3(int channel, int timeset);
+int u_send_A8(int channel, int threshold, int polarity, int wavelen, int model, int increase);
 int u_send_B1(int direction, int angle, int speed);
 int u_send_B2(int channel, int status);
+int u_send_B5(int status);
 int u_send_B6(int angle_x, int angle_z, int speed_x, int speed_z, int direction_z);
 int u_send_B9(int direction, int angle_x, int angle_z, int speed_x, int speed_z);
 int u_send_BA();
