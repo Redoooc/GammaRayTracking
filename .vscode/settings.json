@@ -60,6 +60,7 @@
         "data_visualization.h": "c",
         "windows.h": "c",
         "math.h": "c",
-        "file_read&write.h": "c"
+        "file_read&write.h": "c",
+        "cmath": "c"
     }
 }

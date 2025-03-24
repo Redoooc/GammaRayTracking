@@ -23,5 +23,6 @@ void init_graph(int SDL_index);
 void add_data(float y, int winIndex);
 void draw_axes(float min_y, float max_y, int winIndex);
 void plot_data(int winIndex);
+void plot_slope(float slope_x, float slope_y, int winIndex);
 void process_events(int winIndex);
 void plot_show(float plot_input, int winIndex);

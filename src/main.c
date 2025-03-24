@@ -73,31 +73,32 @@ int main() {
 
     init_graph(0);
     init_graph(1);
+    // init_graph(2);
+    // init_graph(3);
+    // init_graph(4);
 
     for(int i = 0; i < 1; i++){
         int num;
         printf("请输入1：\n");
         scanf("%d", &num);
         if (num == 1) {
-            // u_send_A8(5, 2071, 0, 1, 1, 5);
-            // Sleep(100);
-            // u_send_A8(4, 2071, 0, 1, 1, 6);
-            // Sleep(100);
-            // u_send_A3(5,100);
-            // Sleep(100);
-            // u_send_B5(1);
-            // Sleep(100);
-            // u_send_B2(5,1);
-            // collect_test_data_static();
-            for(int i=0; i<5000; i++) {
-                Data1 = 15 + 30*sin(i*0.1);
-                isNeedAdd1 = 1;
-                plot_show(Data1,0);
-                Data2 = 50*cos(i*0.1);
-                isNeedAdd2 = 1;
-                plot_show(Data2,1);
-                Sleep(100);
-            }
+            u_send_A8(1, 2077, 0, 1, 1, 5);
+            Sleep(100);
+            u_send_A8(2, 2071, 0, 1, 1, 5);
+            Sleep(100);
+            u_send_A8(3, 2071, 0, 1, 1, 5);
+            Sleep(100);
+            u_send_A8(4, 2071, 0, 1, 1, 6);
+            Sleep(100);
+            u_send_A3(5,150);
+            Sleep(100);
+            u_send_B5(1);
+            Sleep(100);
+            u_send_B2(5,1);
+            Sleep(100);
+            u_send_B1(0,18000,16);
+            Sleep(100);
+            always_record();
         }
     }
 

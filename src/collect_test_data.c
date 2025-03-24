@@ -227,6 +227,39 @@ void collect_test_data_static(){
     }
 }
 
+void always_record(){
+    char addr[100];
+    
+    time_t now;
+    time(&now);
+    struct tm *local = localtime(&now);
+    char timeString[100];
+    strftime(timeString, sizeof(timeString), "%Y年%m月%d日%H时%M分%S秒", local);
+
+    sprintf(addr,"../../ExperimentalData/Log/%s.txt",timeString);
+    appendOpenFile(addr);
+    while(1){
+        while(!isAllowRecord);
+        int msg[] = {track_share.angle_x,track_share.angle_z,track_share.spec1_sum,track_share.spec2_sum,track_share.spec3_sum,track_share.spec4_sum};
+        char *char_msg = array_int_to_char(msg, sizeof(msg)/sizeof(msg[0]));
+        writeFile(char_msg);
+        free(char_msg);
+        char *char_spec1_detail = array_int_to_char(track_share.spec1_detail, sizeof(track_share.spec1_detail)/sizeof(track_share.spec1_detail[0]));
+        writeFile(char_spec1_detail);
+        free(char_spec1_detail);
+        char *char_spec2_detail = array_int_to_char(track_share.spec2_detail, sizeof(track_share.spec2_detail)/sizeof(track_share.spec2_detail[0]));
+        writeFile(char_spec2_detail);
+        free(char_spec2_detail);
+        char *char_spec3_detail = array_int_to_char(track_share.spec3_detail, sizeof(track_share.spec3_detail)/sizeof(track_share.spec3_detail[0]));
+        writeFile(char_spec3_detail);
+        free(char_spec3_detail);
+        char *char_spec4_detail = array_int_to_char(track_share.spec4_detail, sizeof(track_share.spec4_detail)/sizeof(track_share.spec4_detail[0]));
+        writeFile(char_spec4_detail);
+        free(char_spec4_detail);
+        isAllowRecord = 0;
+    }
+}
+
 /*将整型数组转化为字符串
  *注意：1.输入的array_len应当为sizeof(msg)/sizeof(msg[0])
  *     2.存在内存分配，需要及时释放

@@ -47,7 +47,7 @@ void recv_process_C6();
 void recv_process_D1(int num);
 int decode_coordinates_x(int num);
 int decode_coordinates_z(int num);
-void process_spec_data();
+void process_spec_data(int spec_data_num);
 void initRecvShare();
 bool checkSpecAllWritten();
 void checkIsNotRotatingThroughD1();

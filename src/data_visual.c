@@ -131,6 +131,21 @@ void plot_data(int winIndex) {
     SDL_RenderPresent(renderer[winIndex]);
 }
 
+// 接收斜率画直线函数（用于反映方向）
+void plot_slope(float slope_x, float slope_y, int winIndex){;
+    int minWinLen = WINDOW_WIDTH>WINDOW_HEIGHT?WINDOW_HEIGHT/2:WINDOW_WIDTH/2;
+    float start_x = (WINDOW_WIDTH / 2);
+    float start_y = (WINDOW_HEIGHT / 2);
+    float end_x = (WINDOW_WIDTH / 2) + minWinLen*slope_x;
+    float end_y = (WINDOW_HEIGHT / 2) - minWinLen*slope_y;
+    
+    SDL_SetRenderDrawColor(renderer[winIndex], 255, 255, 255, 255);
+    SDL_RenderClear(renderer[winIndex]);
+    SDL_SetRenderDrawColor(renderer[winIndex], 255, 0, 0, 255);
+    SDL_RenderDrawLine(renderer[winIndex], (int)start_x, (int)start_y, (int)end_x, (int)end_y);
+    SDL_RenderPresent(renderer[winIndex]);
+}
+
 // 处理窗口事件
 void process_events(int winIndex) {
     SDL_Event event;
