@@ -7,3 +7,6 @@
 DWORD WINAPI TCPthread(LPVOID lpParam);
 DWORD WINAPI RECV_ANALYZEthread(LPVOID lpParam);
 DWORD WINAPI TRACKINGthread(LPVOID lpParam);
+
+// 模拟线程，若SIMULATION_MODE定义为0则没有函数定义
+DWORD WINAPI SIMthread(LPVOID lpParam);

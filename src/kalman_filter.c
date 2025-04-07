@@ -27,7 +27,7 @@ float kalman_filter_update(KalmanFilterStruct* kf, float measurement) {
     }
 
     /* 预测阶段 */
-    const float F = 1.0f; // 状态转移矩阵（一维简化）
+    const float F = 10.0f; // 状态转移矩阵（一维简化）
     const float H = 1.0f; // 观测矩阵（一维简化）
     
     // 状态预测：x = F * x

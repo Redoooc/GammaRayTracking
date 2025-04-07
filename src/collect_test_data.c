@@ -50,6 +50,7 @@ void collect_test_data_horizontal(){
     for(int x = -90; x < 90; x++){
         rotate((aim_x+(x*100)+36000)%36000, aim_y, 60, 25, 1);
         while(!isNotRotating);
+        Sleep(100);
         u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
@@ -72,6 +73,7 @@ void collect_test_data_horizontal(){
             isAllowRecord = 0;
         }
         u_send_B2(5,0);
+        Sleep(100);
     }
 }
 
@@ -81,6 +83,7 @@ void collect_test_data_vertical(){
     for(int y = -55; y < 55; y++){
         rotate(aim_x, aim_y+(y*100), 60, 25, 1);
         while(!isNotRotating);
+        Sleep(100);
         u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
@@ -103,6 +106,7 @@ void collect_test_data_vertical(){
             isAllowRecord = 0;
         }
         u_send_B2(5,0);
+        Sleep(100);
     }
 }
 
@@ -110,8 +114,9 @@ void collect_test_data_30degree(){
     char addr[] = "../../ExperimentalData/30degree.txt";
     appendOpenFile(addr);
     for(int x = -90; x < 90; x++){
-        rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*50), 60, 25, 1);
+        rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*70), 60, 25, 1);
         while(!isNotRotating);
+        Sleep(100);
         u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
@@ -134,6 +139,7 @@ void collect_test_data_30degree(){
             isAllowRecord = 0;
         }
         u_send_B2(5,0);
+        Sleep(100);
     }
 }
 
@@ -143,6 +149,7 @@ void collect_test_data_45degree(){
     for(int x = -58; x < 58; x++){
         rotate((aim_x+(x*100)+36000)%36000, aim_y+(x*100), 60, 25, 1);
         while(!isNotRotating);
+        Sleep(100);
         u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
@@ -165,15 +172,17 @@ void collect_test_data_45degree(){
             isAllowRecord = 0;
         }
         u_send_B2(5,0);
+        Sleep(100);
     }
 }
 
 void collect_test_data_60degree(){
     char addr[] = "../../ExperimentalData/60degree.txt";
     appendOpenFile(addr);
-    for(int x = -55; x < 55; x++){
+    for(int x = -35; x < 35; x++){
         rotate((aim_x+(x*50)+36000)%36000, aim_y+(x*100), 60, 25, 1);
         while(!isNotRotating);
+        Sleep(200);
         u_send_B2(5,1);
         for(int cnt = 0; cnt < 5; cnt++){
             while(!isAllowRecord);
@@ -196,6 +205,7 @@ void collect_test_data_60degree(){
             isAllowRecord = 0;
         }
         u_send_B2(5,0);
+        Sleep(200);
     }
 }
 

@@ -5,7 +5,10 @@
 #include "collect_test_data.h"
 #include "tracking.h"
 #include "data_visual.h"
-#include <math.h>
+
+#if SIMULATION_MODE
+#include "simulation.h"
+#endif
 
 DWORD threadId[MAX_THREAD_NUM]; // 用于存储线程ID的变量
 HANDLE threadHandle[MAX_THREAD_NUM];
@@ -71,6 +74,21 @@ int main() {
         printf("Thread2 created successfully with ID: %lu\n", threadId[2]); 
     }
 
+#if SIMULATION_MODE
+    threadHandle[3] = CreateThread(NULL,           // 默认安全属性
+                                   0,              // 使用默认堆栈大小
+                                   SIMthread,      // 线程函数
+                                   NULL,           // 传递给ThreadFunction的参数
+                                   0,              // 默认创建标志
+                                   &threadId[3]);     // 返回线程ID
+
+    if (threadHandle[3] == NULL) {
+        printf("CreateThread3 failed: %d\n", GetLastError());
+    } else {
+        printf("Thread3 created successfully with ID: %lu\n", threadId[3]); 
+    }
+#endif
+
     init_graph(0);
     init_graph(1);
     // init_graph(2);
@@ -82,7 +100,7 @@ int main() {
         printf("请输入1：\n");
         scanf("%d", &num);
         if (num == 1) {
-            u_send_A8(1, 2077, 0, 1, 1, 5);
+            u_send_A8(1, 2071, 0, 1, 1, 5);
             Sleep(100);
             u_send_A8(2, 2071, 0, 1, 1, 5);
             Sleep(100);
@@ -90,15 +108,17 @@ int main() {
             Sleep(100);
             u_send_A8(4, 2071, 0, 1, 1, 6);
             Sleep(100);
-            u_send_A3(5,150);
+            u_send_A3(5,100);
             Sleep(100);
             u_send_B5(1);
             Sleep(100);
-            u_send_B2(5,1);
-            Sleep(100);
-            u_send_B1(0,18000,16);
-            Sleep(100);
-            always_record();
+            // u_send_B2(5,1);
+            // Sleep(100);
+            // u_send_B1(0,18000,30);
+            // Sleep(100);
+            // always_record();
+            collect_test_data_30degree();
+            // collect_test_data_horizontal();
         }
     }
 
@@ -134,3 +154,10 @@ DWORD WINAPI TRACKINGthread(LPVOID lpParam){
     tracking();
     return 0;
 }
+
+#if SIMULATION_MODE
+DWORD WINAPI SIMthread(LPVOID lpParam){
+    sim_thread();
+    return 0;
+}
+#endif
